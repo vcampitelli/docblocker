@@ -1,0 +1,34 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/vendor/autoload.php';
+
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\SingleCommandApplication;
+
+(new SingleCommandApplication())
+    ->setName('Criador de DocBlocks em Models a partir do banco de dados')
+    ->setVersion('1.0.0')
+    ->addArgument('autoload-path', InputArgument::REQUIRED, 'Caminho para o "vendor/autoload.php" da aplicação')
+    ->addOption('namespace', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, 'Namespace comum das models', ['App\Models'])
+    ->addOption('db', null, InputOption::VALUE_OPTIONAL, 'Endereço do banco de dados', 'mysql')
+    ->addOption('db-host', null, InputOption::VALUE_OPTIONAL, 'Endereço do banco de dados', 'localhost')
+    ->addOption('db-port', null, InputOption::VALUE_OPTIONAL, 'Porta do banco de dados', '3306')
+    ->addOption('db-dbname', null, InputOption::VALUE_OPTIONAL, 'Nome do banco no banco de dados', 'app')
+    ->addOption('db-username', null, InputOption::VALUE_OPTIONAL, 'Usuário do banco de dados', 'root')
+    ->addOption('db-password', null, InputOption::VALUE_OPTIONAL, 'Senha do banco de dados', 'root')
+    ->setCode(function (InputInterface $input, OutputInterface $output) {
+        try {
+            $command = new DocBlocker\Command($input, $output);
+            return $command();
+        } catch (\Throwable $t) {
+            $output->writeln("<error>{$t->getMessage()}</>");
+            throw $t;
+        }
+    })
+    ->run();
