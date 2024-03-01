@@ -1,4 +1,4 @@
-FROM php:8.2-cli-alpine
+FROM php:8.3-cli-alpine
 
 WORKDIR /app
 
@@ -10,4 +10,4 @@ COPY ["composer.json", "composer.lock", "./"]
 RUN composer install
 
 COPY . .
-CMD ["./run"]
+CMD ["./docblocker"]

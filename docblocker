@@ -14,9 +14,10 @@ use Symfony\Component\Console\SingleCommandApplication;
 (new SingleCommandApplication())
     ->setName('Criador de DocBlocks em Models a partir do banco de dados')
     ->setVersion('1.0.0')
-    ->addArgument('autoload-path', InputArgument::REQUIRED, 'Caminho para o "vendor/autoload.php" da aplicação')
+    ->addArgument('path', InputArgument::REQUIRED, 'Caminho para a raiz da aplicação')
     ->addOption('namespace', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, 'Namespace comum das models', ['App\Models'])
-    ->addOption('db', null, InputOption::VALUE_OPTIONAL, 'Endereço do banco de dados', 'mysql')
+    ->addOption('namespace-ignore', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, 'Namespace a ignorar das models', ['App\Models\Base'])
+    ->addOption('db', null, InputOption::VALUE_OPTIONAL, 'Tipo do banco de dados', 'mysql')
     ->addOption('db-host', null, InputOption::VALUE_OPTIONAL, 'Endereço do banco de dados', 'localhost')
     ->addOption('db-port', null, InputOption::VALUE_OPTIONAL, 'Porta do banco de dados', '3306')
     ->addOption('db-dbname', null, InputOption::VALUE_OPTIONAL, 'Nome do banco no banco de dados', 'app')
@@ -24,7 +25,7 @@ use Symfony\Component\Console\SingleCommandApplication;
     ->addOption('db-password', null, InputOption::VALUE_OPTIONAL, 'Senha do banco de dados', 'root')
     ->setCode(function (InputInterface $input, OutputInterface $output) {
         try {
-            $command = new DocBlocker\Command($input, $output);
+            $command = new DocBlocker\Command($input, $output, new \DocBlocker\Factory\LaravelModelFactory());
             return $command();
         } catch (\Throwable $t) {
             $output->writeln("<error>{$t->getMessage()}</>");

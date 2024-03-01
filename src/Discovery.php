@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace DocBlocker;
 
 use Composer\Autoload\ClassLoader;
-use DocBlocker\Factory\ModelFactory;
+use DocBlocker\Factory\ModelFactoryInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+
+use function method_exists;
 
 readonly class Discovery
 {
     public function __construct(
         private OutputInterface $output,
         private ClassValidator $validator,
-        private ModelFactory $factory
+        private ModelFactoryInterface $factory
     ) {
     }
 
@@ -26,6 +28,10 @@ readonly class Discovery
         $mapping = [];
         $factory = $this->factory;
 
+        /**
+         * @var class-string $class
+         * @var string $file
+         */
         foreach ($loader->getClassMap() as $class => $file) {
             $reflection = $this->validator->validateAndReturnReflection($class);
             if (!$reflection) {
@@ -37,7 +43,7 @@ readonly class Discovery
             if (empty($table)) {
                 // Senão, temos que criar a model para buscar a tabela (ex: model do usuário)
                 $model = $factory($class);
-                $table = $model->getTable();
+                $table = (method_exists($model, 'getTable')) ? $model->getTable() : null;
             }
             if (empty($table)) {
                 $this->output->writeln("<error>{$class} não possui uma tabela definida</>");

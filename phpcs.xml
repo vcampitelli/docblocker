@@ -13,5 +13,5 @@
 
     <!-- Paths to check -->
     <file>src</file>
-    <file>run</file>
+    <file>docblocker</file>
 </ruleset>

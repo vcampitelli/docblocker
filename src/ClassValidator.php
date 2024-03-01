@@ -20,16 +20,27 @@ readonly class ClassValidator
      */
     private array $namespaces;
 
+    /**
+     * @var string[]
+     */
     private array $denyList;
 
-    public function __construct(private OutputInterface $output, array $namespaces)
+    /**
+     * @param OutputInterface $output
+     * @param string[] $namespaces
+     * @param string[] $denyList
+     */
+    public function __construct(private OutputInterface $output, array $namespaces, array $denyList = [])
     {
         $this->namespaces = array_map(fn($namespace) => trim($namespace, '\\') . '\\', $namespaces);
-        $this->denyList = array_flip([
-            'App\Models\Base',
-        ]);
+        $this->denyList = array_flip($denyList);
     }
 
+    /**
+     * @template T of object
+     * @param class-string<T> $class
+     * @return ReflectionClass<T>|false
+     */
     public function validateAndReturnReflection(string $class): ReflectionClass|false
     {
         // Checando o namespace
@@ -43,7 +54,7 @@ readonly class ClassValidator
         }
 
         if (!\is_a($class, \Illuminate\Database\Eloquent\Model::class, true)) {
-            $this->error("{$class} não é uma Model");
+            $this->debug("{$class} não é uma Model");
             return false;
         }
 
@@ -58,26 +69,31 @@ readonly class ClassValidator
             }
         }
 
-        $this->error("{$class} não possui nenhum namespace (" . \implode(', ', $this->namespaces) . ')');
+        $this->debug("{$class} não possui nenhum namespace (" . \implode(', ', $this->namespaces) . ')');
         return false;
     }
 
+    /**
+     * @template T of object
+     * @param class-string<T> $class
+     * @return ReflectionClass<T>|null
+     */
     protected function reflection(string $class): ?ReflectionClass
     {
         try {
             $reflection = new ReflectionClass($class);
-        } catch (ReflectionException $e) {
+        } catch (ReflectionException $e) { /** @phpstan-ignore-line */
             $this->error("{$class} com erro ao criar Reflection: {$e->getMessage()}");
             return null;
         }
 
         if ($reflection->isAbstract()) {
-            $this->error("{$class} é uma classe abstrata");
+            $this->debug("{$class} é uma classe abstrata");
             return null;
         }
 
         if ($reflection->isTrait()) {
-            $this->error("{$class} é uma trait");
+            $this->debug("{$class} é uma trait");
             return null;
         }
 
@@ -91,11 +107,21 @@ readonly class ClassValidator
         return $reflection;
     }
 
-    protected function error(string $message): void
+    protected function writeOutput(string $message, int $level = OutputInterface::VERBOSITY_VERBOSE): void
     {
         $this->output->writeln(
             "<comment>{$message}</>",
-            OutputInterface::OUTPUT_NORMAL | OutputInterface::VERBOSITY_VERY_VERBOSE
+            OutputInterface::OUTPUT_NORMAL | $level
         );
+    }
+
+    protected function error(string $message): void
+    {
+        $this->writeOutput($message, OutputInterface::VERBOSITY_VERBOSE);
+    }
+
+    protected function debug(string $message): void
+    {
+        $this->writeOutput($message, OutputInterface::VERBOSITY_VERY_VERBOSE);
     }
 }

@@ -6,5 +6,9 @@ namespace DocBlocker\TypeMapper;
 
 interface TypeMapperInterface
 {
-    public function __invoke(string $type): string;
+    /**
+     * @param string $table
+     * @return \Generator<string, array{string, string}>
+     */
+    public function run(string $table): \Generator;
 }
