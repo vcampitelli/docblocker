@@ -55,7 +55,7 @@ readonly class Command
         /** @var string[] $namespace */
         $namespace = $this->input->getOption('namespace');
         /** @var string[] $denyList */
-        $denyList = $this->input->getOption('denyList');
+        $denyList = $this->input->getOption('namespace-ignore');
 
         $validator = new ClassValidator(
             $this->output,
@@ -157,6 +157,8 @@ readonly class Command
         }
 
         rename($tempFile, $file);
+        \chown($file, 1000);
+        \chgrp($file, 1000);
 
         return true;
     }

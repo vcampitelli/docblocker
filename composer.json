@@ -30,6 +30,6 @@
         "phpstan": "phpstan analyse src"
     },
     "bin": [
-        "docblocker"
+        "bin/docblocker"
     ]
 }

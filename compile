@@ -1,0 +1,44 @@
+#!/usr/bin/env php
+<?php
+$phar = new Phar('docblocker.phar');
+$phar->setSignatureAlgorithm(\Phar::SHA512);
+
+$phar->startBuffering();
+
+$exclude = [
+    '.github',
+    'compile',
+    'composer.lock',
+    'docblocker.phar',
+    'Dockerfile',
+    'phpcs.xml',
+    'phpmd.xml',
+    'phpstan.neon',
+    'README.md',
+];
+$filter = function ($file, $key, $iterator) use ($exclude) {
+    if ($iterator->hasChildren() && !in_array($file->getFilename(), $exclude)) {
+        return true;
+    }
+    return $file->isFile() && !in_array($file->getFilename(), $exclude);
+};
+
+$innerIterator = new RecursiveDirectoryIterator(
+    __DIR__,
+    RecursiveDirectoryIterator::SKIP_DOTS
+);
+
+$iterator = new RecursiveIteratorIterator(
+    new RecursiveCallbackFilterIterator($innerIterator, $filter)
+);
+$phar->buildFromIterator($iterator, __DIR__);
+$phar->setStub(
+    <<<PHP
+#!/usr/bin/env php
+<?php
+Phar::mapPhar('docblocker.phar');
+include 'phar://docblocker.phar/bin/docblocker';
+__HALT_COMPILER();
+PHP
+);
+$phar->stopBuffering();
